@@ -3,9 +3,11 @@ import os
 import git
 import io
 
+## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
 version_num = "0.1.0"
 
+## Parser Arguments ###############################################################################
 parser.add_argument(
     "-v", "--version", 
     help="Displays tool name and version number",
@@ -16,7 +18,7 @@ parser.add_argument(
 parser.add_argument(
     "-o", "--output", 
     action="store_true",
-    help="Package results will be written to JSON file",
+    help="Package results will be written to text file output.txt",
     )
 
 parser.add_argument(
@@ -25,6 +27,7 @@ parser.add_argument(
     help="Directory path or files to analyze. Defaults to current directory."
     )
 
+## Functions ######################################################################################
 def analyze_args(arg):
     absolute_path = os.path.abspath(arg)
     
@@ -48,7 +51,10 @@ def content_output(absolute_path, output=None):
 
     buffer.write(f"## Git Info\n\n")
     git_info = pull_git_info(absolute_path)
-    buffer.write(f"{git_info}\n\n")
+    if git_info:
+        buffer.write(f"{git_info}\n\n")
+    else:
+        buffer.write(f"Not a git repository\n\n")
 
     buffer.write(f"## Structure\n\n")
     structure = analyze_structure(absolute_path)
@@ -57,29 +63,31 @@ def content_output(absolute_path, output=None):
     content = buffer.getvalue()
 
     if output:
-        print("Writing results to output.txt")
+        print("Writing results to output.txt..\n")
         write_results(content)
     else:
-        print("Displaying results..")
+        print("Displaying results..\n")
         print(content) 
 
 def pull_git_info(absolute_path):
-    repo = git.Repo(absolute_path)
+    try:
+        repo = git.Repo(absolute_path)
 
-    # Get the latest commit
-    commit = repo.head.commit
+        # Get the latest commit
+        commit = repo.head.commit
 
-    # Get current branch
-    branch = repo.active_branch.name
+        # Get current branch
+        branch = repo.active_branch.name
 
-    # Output
-    return(
-        f"- Commit: {commit.hexsha}\n"
-        f"- Branch: {branch}\n"
-        f"- Author: {commit.author.name} <{commit.author.email}>\n"
-        f"- Date: {commit.committed_datetime.strftime('%a %b %d %H:%M:%S %Y %z')}"
-    )
-
+        # Output
+        return(
+            f"- Commit: {commit.hexsha}\n"
+            f"- Branch: {branch}\n"
+            f"- Author: {commit.author.name} <{commit.author.email}>\n"
+            f"- Date: {commit.committed_datetime.strftime('%a %b %d %H:%M:%S %Y %z')}"
+        )
+    except git.exc.InvalidGitRepositoryError:
+        return None
 
 def analyze_structure(absolute_path):
     output = []
@@ -106,11 +114,12 @@ def write_results(content):
     try:
         with open(output, "w", encoding="utf-8") as f:
             f.write(content)
-            print(f"Results written to {output}")
+            print(f"Results successfully written to {output}")
     except Exception as e:
         print(f"Failed to write to {output}: {e}")
-        
-args = parser.parse_args()
 
-for path in args.paths:
-    analyze_args(path)
+if __name__ == "__main__":        
+    args = parser.parse_args()
+
+    for path in args.paths:
+        analyze_args(path)
