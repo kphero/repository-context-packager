@@ -22,10 +22,28 @@ def analyze_args(arg):
 
     if os.path.isdir(absolute_path):
         print(f"Analyzing directory: {absolute_path}")
+        display_file_structure(absolute_path)
     elif os.path.isfile(absolute_path):
         print(f"Analyzing file: {absolute_path}")
     else:
         print(f"Invalid path: {absolute_path}")
+
+def display_file_structure(absolute_path):
+    print(f"\nFile Structure:\n")
+
+    for dirpath, dirnames, filenames in os.walk(absolute_path):
+        depth = dirpath.replace(absolute_path, "").count(os.sep)
+        indent = "    " * depth
+        print(f"{indent}📂 {os.path.basename(dirpath) or absolute_path}")
+
+        # Print subdirectories
+        for dirname in dirnames:
+            print(f"{indent}    📁 {dirname}")
+
+        # Print files
+        for filename in filenames:
+            print(f"{indent}    📄 {filename}")
+
 
 args = parser.parse_args()
 
