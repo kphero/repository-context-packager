@@ -1,6 +1,7 @@
 import argparse
 import os
 import git
+import io
 
 parser = argparse.ArgumentParser()
 version_num = "0.1.0"
@@ -14,7 +15,7 @@ parser.add_argument(
 
 parser.add_argument(
     "-o", "--output", 
-    type=str,
+    action="store_true",
     help="Package results will be written to JSON file",
     )
 
@@ -29,24 +30,38 @@ def analyze_args(arg):
     
     if os.path.isdir(absolute_path):
         print(f"Analyzing directory: {absolute_path}")
-        content_output(absolute_path)
+        content_output(absolute_path, args.output)
     elif os.path.isfile(absolute_path):
         print(f"Analyzing file: {absolute_path}")
-        content_output(absolute_path)
+        content_output(absolute_path, args.output)
     else:
         print(f"Invalid path: {absolute_path}")
 
-def content_output(absolute_path):
-    print(f"# Repository Context\n")
+def content_output(absolute_path, output=None):
+    # Write to buffer then determine if output is displayed in terminal or in file
+    buffer = io.StringIO()
 
-    print(f"## File System Location\n")
-    print(absolute_path)
+    buffer.write(f"# Repository Context\n\n")
 
-    print(f"\n## Git Info\n")
-    pull_git_info(absolute_path)
+    buffer.write(f"## File System Location\n\n")
+    buffer.write(f"{absolute_path}\n\n")
 
-    print(f"## Structure\n")
-    analyze_structure(absolute_path)
+    buffer.write(f"## Git Info\n\n")
+    git_info = pull_git_info(absolute_path)
+    buffer.write(f"{git_info}\n\n")
+
+    buffer.write(f"## Structure\n\n")
+    structure = analyze_structure(absolute_path)
+    buffer.write(f"{structure}\n\n")
+
+    content = buffer.getvalue()
+
+    if output:
+        print("Writing results to output.txt")
+        write_results(content)
+    else:
+        print("Displaying results..")
+        print(content) 
 
 def pull_git_info(absolute_path):
     repo = git.Repo(absolute_path)
@@ -58,33 +73,43 @@ def pull_git_info(absolute_path):
     branch = repo.active_branch.name
 
     # Output
-    print(f"- Commit: {commit.hexsha}")
-    print(f"- Branch: {branch}")
-    print(f"- Author: {commit.author.name} <{commit.author.email}>")
-    print(f"- Date: {commit.committed_datetime.strftime('%a %b %d %H:%M:%S %Y %z')}\n")
+    return(
+        f"- Commit: {commit.hexsha}\n"
+        f"- Branch: {branch}\n"
+        f"- Author: {commit.author.name} <{commit.author.email}>\n"
+        f"- Date: {commit.committed_datetime.strftime('%a %b %d %H:%M:%S %Y %z')}"
+    )
 
 
 def analyze_structure(absolute_path):
+    output = []
+
     for dirpath, dirnames, filenames in os.walk(absolute_path):
         depth = dirpath.replace(absolute_path, "").count(os.sep)
         indent = "  " * depth
-        print(f"{indent}{os.path.basename(dirpath) or absolute_path}/")
+
+        output.append(f"{indent}{os.path.basename(dirpath) or absolute_path}/")
 
         # Print subdirectories
         for dirname in dirnames:
-            print(f"{indent}  {dirname}/")
+            output.append(f"{indent}  {dirname}/")
 
         # Print files
         for filename in filenames:
-            print(f"{indent}  {filename}")
+            output.append(f"{indent}  {filename}")
 
-def write_results(output, content):
+    return "\n".join(output)
+
+def write_results(content):
+    output = os.path.join(os.getcwd(), "output.txt")
+
     try:
         with open(output, "w", encoding="utf-8") as f:
             f.write(content)
             print(f"Results written to {output}")
     except Exception as e:
         print(f"Failed to write to {output}: {e}")
+        
 args = parser.parse_args()
 
 for path in args.paths:
