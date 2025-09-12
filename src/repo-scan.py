@@ -61,7 +61,20 @@ def content_output(absolute_path, output=None):
 
     buffer.write(f"## Structure\n\n")
     structure = analyze_structure(absolute_path)
-    buffer.write(f"{structure}\n\n")
+    buffer.write("```\n")
+    buffer.write(f"{structure}\n")
+    buffer.write("\n```\n\n")
+
+    buffer.write("## File Contents\n\n")
+    file_paths = list_all_files(absolute_path)
+
+    for file_path in file_paths:
+        filename = os.path.basename(file_path)
+
+        buffer.write(f"### File: {filename}\n")
+        buffer.write("```\n")
+        buffer.write(analyze_file_content(file_path))
+        buffer.write("\n```\n\n")
 
     content = buffer.getvalue()
 
@@ -113,6 +126,24 @@ def analyze_structure(absolute_path):
             output.append(f"{indent}  {filename}")
 
     return "\n".join(output)
+
+def analyze_file_content(file_path):
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            return f.read()
+    except Exception as e:
+        return f"Failed to read {file_path}: {e}"
+
+
+def list_all_files(absolute_path):
+    file_paths = []
+    for root, _, files in os.walk(absolute_path):
+        for file in files:
+            full_path = os.path.join(root, file)
+            file_paths.append(full_path)
+    return file_paths
+
+
 
 def write_results(content, output):
     try:
