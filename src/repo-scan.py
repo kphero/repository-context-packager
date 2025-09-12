@@ -32,7 +32,7 @@ parser.add_argument(
 
 ## Functions ######################################################################################
 def analyze_args(arg):
-    absolute_path = os.path.abspath(arg)
+    absolute_path = os.path.normpath(os.path.abspath(arg))
     
     if os.path.isdir(absolute_path):
         print(f"Analyzing directory: {absolute_path}")
@@ -96,6 +96,9 @@ def analyze_structure(absolute_path):
     output = []
 
     for dirpath, dirnames, filenames in os.walk(absolute_path):
+        if ".git" in dirnames:
+            dirnames.remove(".git")
+
         depth = dirpath.replace(absolute_path, "").count(os.sep)
         indent = "  " * depth
 
