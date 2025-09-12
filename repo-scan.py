@@ -17,8 +17,11 @@ parser.add_argument(
 
 parser.add_argument(
     "-o", "--output", 
-    action="store_true",
-    help="Package results will be written to text file output.txt",
+    nargs="?",
+    const="output.txt",
+    default=None,
+    type=str,
+    help="Package results will be written to file (default: output.txt if no filename is given)",
     )
 
 parser.add_argument(
@@ -63,8 +66,8 @@ def content_output(absolute_path, output=None):
     content = buffer.getvalue()
 
     if output:
-        print("Writing results to output.txt..\n")
-        write_results(content)
+        print(f"Writing results to {output}..\n")
+        write_results(content, output)
     else:
         print("Displaying results..\n")
         print(content) 
@@ -108,9 +111,7 @@ def analyze_structure(absolute_path):
 
     return "\n".join(output)
 
-def write_results(content):
-    output = os.path.join(os.getcwd(), "output.txt")
-
+def write_results(content, output):
     try:
         with open(output, "w", encoding="utf-8") as f:
             f.write(content)
