@@ -2,6 +2,7 @@ import argparse
 import os
 import git
 import io
+import sys
 
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
@@ -155,6 +156,11 @@ def write_results(content, output):
 
 if __name__ == "__main__":        
     args = parser.parse_args()
+
+    if len(sys.argv) == 1:
+        print("ERROR: No arguments provided.\n")
+        parser.print_help(sys.stderr)
+        sys.exit(1)
 
     for path in args.paths:
         analyze_args(path)
