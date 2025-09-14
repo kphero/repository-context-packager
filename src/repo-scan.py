@@ -164,10 +164,8 @@ def list_all_files(absolute_path):
         dirs[:] = [d for d in dirs if d != ".git"]
 
         for file in files:
-            # Skip hidden Git files and dotfiles
-            if root.endswith(".git") or file.startswith(".") or file in {
-                "COMMIT_EDITMSG", "HEAD", "index", "config", "description", "logs", "refs"
-            }:
+            # Skip hidden Git files
+            if root.endswith(".git"):
                 continue
 
             full_path = os.path.join(root, file)
