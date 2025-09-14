@@ -63,7 +63,7 @@ def content_output(absolute_path, output=None):
     else:
         buffer.write(f"Not a git repository\n\n")
 
-    buffer.write(f"## Structure\n\n")
+    buffer.write(f"## Structure\n")
     structure = analyze_structure(absolute_path)
     buffer.write("```\n")
     buffer.write(f"{structure}\n")
@@ -80,7 +80,7 @@ def content_output(absolute_path, output=None):
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
 
-    buffer.write("## Summary\n\n")
+    buffer.write("## Summary\n")
     buffer.write(f"- Total files: {file_count}\n")
     buffer.write(f"- Total lines: {line_count}\n\n")
 
