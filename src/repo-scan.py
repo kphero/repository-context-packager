@@ -87,7 +87,7 @@ def content_output(absolute_path, output=None):
     content = buffer.getvalue()
 
     if output:
-        print(f"Writing results to {output}..\n")
+        print(f"Writing results to {output}..")
         write_results(content, output)
     else:
         print("Displaying results..\n")
@@ -124,11 +124,8 @@ def analyze_structure(absolute_path):
         depth = dirpath.replace(absolute_path, "").count(os.sep)
         indent = "  " * depth
 
+        # Print subdirectory
         output.append(f"{indent}{os.path.basename(dirpath) or absolute_path}/")
-
-        # Print subdirectories
-        for dirname in dirnames:
-            output.append(f"{indent}  {dirname}/")
 
         # Print files
         for filename in filenames:
@@ -150,12 +147,10 @@ def analyze_file_content(file_path):
                 escaped_line = (line.replace("```", "&#96;&#96;&#96;"))
                 escaped_lines.append(escaped_line)
 
-
             return "".join(escaped_lines)
 
     except Exception as e:
         return f"Failed to read {file_path}: {e}"
-
 
 def list_all_files(absolute_path):
     file_paths = []
@@ -172,9 +167,6 @@ def list_all_files(absolute_path):
             file_paths.append(full_path)
 
     return file_paths
-
-
-
 
 def write_results(content, output):
     try:
