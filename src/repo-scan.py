@@ -7,6 +7,8 @@ import sys
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
 version_num = "0.1.0"
+file_count = 0
+line_count = 0
 
 ## Parser Arguments ###############################################################################
 parser.add_argument(
@@ -45,6 +47,7 @@ def analyze_args(arg):
         print(f"Invalid path: {absolute_path}")
 
 def content_output(absolute_path, output=None):
+    global file_count, line_count
     # Write to buffer then determine if output is displayed in terminal or in file
     buffer = io.StringIO()
 
@@ -77,6 +80,10 @@ def content_output(absolute_path, output=None):
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
 
+    buffer.write("## Summary\n\n")
+    buffer.write(f"- Total files: {file_count}\n")
+    buffer.write(f"- Total lines: {line_count}\n\n")
+
     content = buffer.getvalue()
 
     if output:
@@ -107,6 +114,7 @@ def pull_git_info(absolute_path):
         return None
 
 def analyze_structure(absolute_path):
+    global file_count
     output = []
 
     for dirpath, dirnames, filenames in os.walk(absolute_path):
@@ -125,24 +133,48 @@ def analyze_structure(absolute_path):
         # Print files
         for filename in filenames:
             output.append(f"{indent}  {filename}")
+            file_count += 1
 
     return "\n".join(output)
 
 def analyze_file_content(file_path):
+    global line_count
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            return f.read()
+            lines = f.readlines()
+            line_count += len(lines)
+
+            escaped_lines = []
+            for line in lines:
+                # Replace triple backticks to keep markdown output clean
+                escaped_line = (line.replace("```", "&#96;&#96;&#96;"))
+                escaped_lines.append(escaped_line)
+
+
+            return "".join(escaped_lines)
+
     except Exception as e:
         return f"Failed to read {file_path}: {e}"
 
 
 def list_all_files(absolute_path):
     file_paths = []
-    for root, _, files in os.walk(absolute_path):
+    for root, dirs, files in os.walk(absolute_path):
+        # Skip .git directory and its contents
+        dirs[:] = [d for d in dirs if d != ".git"]
+
         for file in files:
+            # Skip hidden Git files and dotfiles
+            if root.endswith(".git") or file.startswith(".") or file in {
+                "COMMIT_EDITMSG", "HEAD", "index", "config", "description", "logs", "refs"
+            }:
+                continue
+
             full_path = os.path.join(root, file)
             file_paths.append(full_path)
+
     return file_paths
+
 
 
 
