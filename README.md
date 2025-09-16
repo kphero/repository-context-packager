@@ -110,10 +110,10 @@ python repo-scan.py [-h] [-v] [paths ...] [-o [OUTPUT]]
     python repo-scan.py .
     ```
 
--   Analyze a folder and write results to `report.txt`:
+-   Analyze a folder and write results to `context-package.md`:
 
     ```bash
-    python repo-scan.py -o report.txt ./my_project
+    python repo-scan.py ./my_project -o context-package.md
     ```
 
 -   Analyze multiple files:
@@ -160,5 +160,11 @@ python repo-scan.py [-h] [-v] [paths ...] [-o [OUTPUT]]
 ## License
 
 MIT License. See `LICENSE` file for details.
+
+---
+
+## Contributing
+
+All contributions welcome—whether it's fixing bugs, improving documentation, suggesting new features, or submitting code enhancements.
 
 ---
