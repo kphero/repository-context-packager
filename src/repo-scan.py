@@ -34,18 +34,6 @@ parser.add_argument(
     )
 
 ## Functions ######################################################################################
-# def analyze_args(arg):
-#     absolute_path = os.path.normpath(os.path.abspath(arg))
-    
-#     if os.path.isdir(absolute_path):
-#         print(f"Analyzing directory: {absolute_path}")
-#         content_output(absolute_path, args.output)
-#     elif os.path.isfile(absolute_path):
-#         print(f"Analyzing file: {absolute_path}")
-#         content_output(absolute_path, args.output)
-#     else:
-#         print(f"Invalid path: {absolute_path}")
-
 def analyze_path_args(paths):
     directories = []
     filenames = []
@@ -76,7 +64,7 @@ def analyze_path_args(paths):
     elif (filenames):
         # Use current directory to search filenames
         search_dir = os.getcwd()
-        print(f"Searching in directory: {search_dir}")
+        print(f"Searching in directory: {search_dir}") 
 
         # Find filenames in current directory
         for name in filenames:
@@ -110,7 +98,7 @@ def content_output(absolute_path, filenames=None, output=None):
     structure = analyze_structure(absolute_path)
     buffer.write("```\n")
     buffer.write(f"{structure}\n")
-    buffer.write("\n```\n\n")
+    buffer.write("```\n\n")
 
     buffer.write("## File Contents\n\n")
     if (filenames):
@@ -229,8 +217,5 @@ if __name__ == "__main__":
         print("ERROR: No arguments provided.\n")
         parser.print_help(sys.stderr)
         sys.exit(1)
-
-    # for path in args.paths:
-    #     analyze_args(path)
 
     analyze_path_args(args.paths)
