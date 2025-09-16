@@ -34,19 +34,108 @@ parser.add_argument(
     )
 
 ## Functions ######################################################################################
-def analyze_args(arg):
-    absolute_path = os.path.normpath(os.path.abspath(arg))
+# def analyze_args(arg):
+#     absolute_path = os.path.normpath(os.path.abspath(arg))
     
-    if os.path.isdir(absolute_path):
-        print(f"Analyzing directory: {absolute_path}")
-        content_output(absolute_path, args.output)
-    elif os.path.isfile(absolute_path):
-        print(f"Analyzing file: {absolute_path}")
-        content_output(absolute_path, args.output)
-    else:
-        print(f"Invalid path: {absolute_path}")
+#     if os.path.isdir(absolute_path):
+#         print(f"Analyzing directory: {absolute_path}")
+#         content_output(absolute_path, args.output)
+#     elif os.path.isfile(absolute_path):
+#         print(f"Analyzing file: {absolute_path}")
+#         content_output(absolute_path, args.output)
+#     else:
+#         print(f"Invalid path: {absolute_path}")
 
-def content_output(absolute_path, output=None):
+def analyze_path_args(paths):
+    directories = []
+    filenames = []
+
+    # Determine if argument is a directory path or a filename
+    for path in paths:
+        absolute_path = os.path.normpath(os.path.abspath(path))
+
+        if os.path.isdir(absolute_path):
+            directories.append(absolute_path)
+        else:
+            filenames.append(path)
+    
+    # Enforce only one directory and seperate directory and filename arguments
+    if len(directories) > 1:
+        print("ERROR: Only one directory path is allowed.", file=sys.stderr)
+        sys.exit(1)
+    elif len(directories) > 0 and len(filenames) > 0:
+        print("ERROR: Please enter only a single directory path OR one or more filenames.", file=sys.stderr)
+        sys.exit(1)
+
+    # Directory output
+    if (directories):
+        print(f"Analyzing directory: {directories[0]}")
+        directory_content_output(directories[0], args.output)
+
+    # File output
+    elif (filenames):
+        # Use current directory to search filenames
+        search_dir = os.getcwd()
+        print(f"Searching in directory: {search_dir}")
+
+        # Find filenames in current directory
+        for name in filenames:
+            for root, _, files in os.walk(search_dir):
+                if name in files:
+                    print(f"Found {name} in {search_dir}...")
+                else:
+                    print(f"ERROR: {name} not found.", file=sys.stderr)
+                    sys.exit(1)
+        
+        file_content_output(filenames, search_dir, args.output)
+
+def file_content_output(filenames, current_dir, output=None):
+    global file_count, line_count
+    # Write to buffer then determine if output is displayed in terminal or in file
+    buffer = io.StringIO()
+
+    buffer.write(f"# Repository Context\n\n")
+
+    buffer.write(f"## File System Location\n\n")
+    buffer.write(f"{current_dir}\n\n")
+
+    buffer.write(f"## Git Info\n\n")
+    git_info = pull_git_info(current_dir)
+    if git_info:
+        buffer.write(f"{git_info}\n\n")
+    else:
+        buffer.write(f"Not a git repository\n\n")
+
+    buffer.write(f"## Structure\n")
+    structure = analyze_structure(current_dir)
+    buffer.write("```\n")
+    buffer.write(f"{structure}\n")
+    buffer.write("\n```\n\n")
+
+    buffer.write("## File Contents\n\n")
+
+    for file_path in filenames:
+        filename = os.path.basename(file_path)
+
+        buffer.write(f"### File: {filename}\n")
+        buffer.write("```\n")
+        buffer.write(analyze_file_content(file_path))
+        buffer.write("\n```\n\n")
+
+    buffer.write("## Summary\n")
+    buffer.write(f"- Total files: {file_count}\n")
+    buffer.write(f"- Total lines: {line_count}\n\n")
+
+    content = buffer.getvalue()
+
+    if output:
+        print(f"Writing results to {output}..")
+        write_results(content, output)
+    else:
+        print("Displaying results..\n")
+        print(content) 
+
+def directory_content_output(absolute_path, output=None):
     global file_count, line_count
     # Write to buffer then determine if output is displayed in terminal or in file
     buffer = io.StringIO()
@@ -184,5 +273,7 @@ if __name__ == "__main__":
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    for path in args.paths:
-        analyze_args(path)
+    # for path in args.paths:
+    #     analyze_args(path)
+
+    analyze_path_args(args.paths)
