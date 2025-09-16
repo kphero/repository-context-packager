@@ -9,6 +9,7 @@ parser = argparse.ArgumentParser()
 version_num = "0.1.0"
 file_count = 0
 line_count = 0
+MAX_FILE_BYTES = 16 * 1024 # 16KB
 
 ## Parser Arguments ###############################################################################
 parser.add_argument(
@@ -115,6 +116,8 @@ def content_output(absolute_path, filenames=None, output=None):
         buffer.write("\n```\n\n")
 
     buffer.write("## Summary\n")
+    if (filenames):
+        file_count = len(filenames)
     buffer.write(f"- Total files: {file_count}\n")
     buffer.write(f"- Total lines: {line_count}\n\n")
 
@@ -172,7 +175,9 @@ def analyze_file_content(file_path):
     global line_count
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            lines = f.readlines()
+            content = f.read(MAX_FILE_BYTES + 1)
+
+            lines = content.splitlines()
             line_count += len(lines)
 
             escaped_lines = []
@@ -181,7 +186,12 @@ def analyze_file_content(file_path):
                 escaped_line = (line.replace("```", "&#96;&#96;&#96;"))
                 escaped_lines.append(escaped_line)
 
-            return "".join(escaped_lines)
+            result = "".join(escaped_lines)
+
+            if len(content.encode("utf-8")) > MAX_FILE_BYTES:
+                result += "\n\n[Truncated: file exceeds 16KB limit]"
+
+            return result
 
     except Exception as e:
         return f"Failed to read {file_path}: {e}"
