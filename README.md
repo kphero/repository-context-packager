@@ -12,8 +12,12 @@ A command-line tool to analyze local git repositories and create a text file con
 -   Extract Git metadata (latest commit, author, branch)
 -   Display full file structure (excluding `.git`)
 -   Output contents of each file
--   Save results to a file or print to terminal
 -   Supports flexible CLI usage
+
+### Additional features:
+
+-   Output to File: Output can be written to a file or displayed in terminal
+-   File Exclusion: Automatically exclude files and directories listed in `.gitignore`
 
 ---
 
@@ -64,13 +68,13 @@ pip install GitPython
 ### 4. Test the Installation
 
 ```bash
-python packager.py ./test-directory
+python repo-scan.py ./test-directory
 ```
 
 Or display help:
 
 ```bash
-python packager.py --help
+python repo-scan.py --help
 ```
 
 ### Troubleshooting
@@ -111,10 +115,13 @@ python repo-scan.py [-h] [-v] [paths ...] [-o [OUTPUT]]
     python repo-scan.py -o report.txt ./my_project
     ```
 
--   Analyze multiple paths:
+-   Analyze multiple files:
+
     ```bash
-    python repo-scan.py ./src ./README.md
+    python repo-scan.py file1.txt file2.md
     ```
+
+    > **Note:** `repo-scan.py` only detects files located in the same directory as the script. Ensure that all target files are placed in the script’s directory before execution, or that `repo-scan.py` is placed in the directory where the files are located.
 
 ---
 
