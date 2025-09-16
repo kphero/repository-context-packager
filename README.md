@@ -13,6 +13,7 @@ A command-line tool to analyze local git repositories and create a text file con
 -   Display full file structure (excluding `.git`)
 -   Output contents of each file
 -   Supports flexible CLI usage
+-   Basic summary statistics (file count, total lines)
 
 ### Additional features:
 
@@ -127,13 +128,32 @@ python repo-scan.py [-h] [-v] [paths ...] [-o [OUTPUT]]
 
 ## Output Format
 
-The tool generates a structured report including:
+```
+# Repository Context
 
--   **File System Location**
--   **Git Info** (commit hash, branch, author, date)
--   **Directory Structure**
--   **File Contents**
--   **Summary** (number of files and number of lines)
+## File System Location
+
+/absolute/path/to/repo/being/analyzed
+
+## Git Info
+
+- Commit: <commit-sha>
+- Branch: <branch-name>
+- Author: <author-name>
+- Date: <commit-date>
+
+## Structure
+<project-structure>
+
+## File Contents
+
+### File: <file-name>
+<file-content>
+
+## Summary
+- Total files: <file-count>
+- Total lines: <line-count>
+```
 
 ---
 
