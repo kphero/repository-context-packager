@@ -1,0 +1,2 @@
+# Core dependencies
+GitPython>=3.1.45
