@@ -241,8 +241,8 @@ def list_all_files(absolute_path):
         dirs[:] = [d for d in dirs if d != ".git"]
 
         for file in files:
-            # Skip hidden Git files
-            if root.endswith(".git"):
+            # Skip hidden files
+            if file.startswith("."):
                 continue
 
             full_path = os.path.join(root, file)
