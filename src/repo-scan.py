@@ -224,7 +224,7 @@ def analyze_file_content(file_path):
                 escaped_line = (line.replace("```", "&#96;&#96;&#96;"))
                 escaped_lines.append(escaped_line)
 
-            result = "".join(escaped_lines)
+            result = "\n".join(escaped_lines)
 
             if len(content.encode("utf-8")) > MAX_FILE_BYTES:
                 result += "\n\n[Truncated: file exceeds 16KB limit]"
