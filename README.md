@@ -8,17 +8,17 @@ A command-line tool to analyze local git repositories and create a text file con
 
 ## Features
 
--   Analyze one or more files or directories
--   Extract Git metadata (latest commit, author, branch)
--   Display full file structure (excluding `.git`)
--   Output contents of each file
--   Supports flexible CLI usage
--   Basic summary statistics (file count, total lines)
+- Analyze one or more files or directories
+- Extract Git metadata (latest commit, author, branch)
+- Display full file structure (excluding `.git`)
+- Output contents of each file
+- Supports flexible CLI usage
+- Basic summary statistics (file count, total lines)
 
 ### Additional features:
 
--   Output to File: Output can be written to a file or displayed in terminal
--   File Exclusion: Automatically exclude files and directories listed in `.gitignore`
+- Output to File: Output can be written to a file or displayed in terminal
+- File Exclusion: Automatically exclude files and directories listed in `.gitignore`
 
 ---
 
@@ -30,22 +30,22 @@ Follow these steps to install and run the **Repository Context Packager** on you
 
 Make sure you have the following installed:
 
--   **Python 3.6+**
+- **Python 3.6+**
 
-    ```bash
-    python --version
-    ```
+  ```bash
+  python --version
+  ```
 
--   **pip** (Python package manager)
+- **pip** (Python package manager)
 
-    ```bash
-    pip --version
-    ```
+  ```bash
+  pip --version
+  ```
 
--   **Git** (for Git metadata extraction)
-    ```bash
-    git --version
-    ```
+- **Git** (for Git metadata extraction)
+  ```bash
+  git --version
+  ```
 
 ### 2. Clone the Repository
 
@@ -80,9 +80,9 @@ python repo-scan.py --help
 
 ### Troubleshooting
 
--   **Permission Denied**: Try running with elevated privileges or check file access rights.
--   **Missing GitPython**: Run `pip install GitPython`.
--   **Script Not Executing**: Ensure you're in the correct directory and using the right Python version.
+- **Permission Denied**: Try running with elevated privileges or check file access rights.
+- **Missing GitPython**: Run `pip install GitPython`.
+- **Script Not Executing**: Ensure you're in the correct directory and using the right Python version.
 
 ---
 
@@ -93,36 +93,43 @@ python repo-scan.py --help
 | `--version`           | `-v`  | Flag     | Displays tool name and version number                                          |
 | `--output [filename]` | `-o`  | Optional | Write results to a file. If no filename is given, defaults to `output.txt`.    |
 | `paths`               | —     | List     | One or more file or directory paths to analyze. Defaults to current directory. |
+| `--recent`            | `-r`  | Flag     | Include only recently modified files (in the last 7 days)                      |
 
 ---
 
 ## Usage
 
 ```bash
-python repo-scan.py [-h] [-v] [paths ...] [-o [OUTPUT]]
+python repo-scan.py [-h] [-v] [-r] [paths ...] [-o [OUTPUT]]
 ```
 
 ### Examples
 
--   Analyze current directory and display results:
+- Analyze current directory and display results:
 
-    ```bash
-    python repo-scan.py .
-    ```
+  ```bash
+  python repo-scan.py .
+  ```
 
--   Analyze a folder and write results to `context-package.md`:
+- Analyze a folder and write results to `context-package.md`:
 
-    ```bash
-    python repo-scan.py ./my_project -o context-package.md
-    ```
+  ```bash
+  python repo-scan.py ./my_project -o context-package.md
+  ```
 
--   Analyze multiple files:
+- Analyze multiple files:
 
-    ```bash
-    python repo-scan.py file1.txt file2.md
-    ```
+  ```bash
+  python repo-scan.py file1.txt file2.md
+  ```
 
-    > **Note:** `repo-scan.py` only detects files located in the same directory as the script. Ensure that all target files are placed in the script’s directory before execution, or that `repo-scan.py` is placed in the directory where the files are located.
+- Analyze recent files in current directory:
+
+  ```bash
+  python repo-scan.py . -r
+  ```
+
+  > **Note:** `repo-scan.py` only detects files located in the same directory as the script. Ensure that all target files are placed in the script’s directory before execution, or that `repo-scan.py` is placed in the directory where the files are located.
 
 ---
 

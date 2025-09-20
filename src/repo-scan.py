@@ -3,6 +3,7 @@ import os
 import git
 import io
 import sys
+import time
 
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
@@ -10,6 +11,7 @@ version_num = "0.1.0"
 file_count = 0
 line_count = 0
 MAX_FILE_BYTES = 16 * 1024 # 16KB
+RECENT_DAY = 3000 / (60*60*24)
 
 ## Parser Arguments ###############################################################################
 parser.add_argument(
@@ -32,6 +34,12 @@ parser.add_argument(
     "paths",
     nargs="*",
     help="Directory path or files to analyze. Defaults to current directory."
+    )
+
+parser.add_argument(
+    "-r", "--recent",
+    help="Include only recently modified files (in the last 7 days)",
+    action="store_true"
     )
 
 ## Functions ######################################################################################
@@ -59,7 +67,7 @@ def analyze_path_args(paths):
     # Directory output
     if (directories):
         print(f"Analyzing directory: {directories[0]}")
-        content_output(directories[0], None, args.output)
+        content_output(directories[0], args.recent, None, args.output)
 
     # File output
     elif (filenames):
@@ -76,9 +84,22 @@ def analyze_path_args(paths):
                     print(f"ERROR: {name} not found.", file=sys.stderr)
                     sys.exit(1)
         
-        content_output(search_dir, filenames, args.output)
+        content_output(search_dir, args.recent, filenames, args.output)
 
-def content_output(absolute_path, filenames=None, output=None):
+def is_recently_modified(file_path, recent_day=RECENT_DAY):
+    try:
+        file_stats = os.stat(file_path)
+        last_modified_time = file_stats.st_mtime
+        current_time = time.time()
+
+        time_difference = current_time - last_modified_time
+        days_difference = time_difference / (60 * 60 * 24)
+
+        return days_difference <= recent_day
+    except FileNotFoundError:
+        return False
+
+def content_output(absolute_path, contain_recent_files_only, filenames=None, output=None):
     global file_count, line_count
     # Write to buffer then determine if output is displayed in terminal or in file
     buffer = io.StringIO()
@@ -101,11 +122,25 @@ def content_output(absolute_path, filenames=None, output=None):
     buffer.write(f"{structure}\n")
     buffer.write("```\n\n")
 
-    buffer.write("## File Contents\n\n")
-    if (filenames):
-        file_paths = filenames
+    buffer.write("## File Contents\n")
+    if contain_recent_files_only:
+        buffer.write("[Only the recently modified files would be included here]\n\n")
     else:
-        file_paths = list_all_files(absolute_path)
+        buffer.write("\n")
+
+    if (filenames):
+        if contain_recent_files_only:
+            file_paths = [file for file in filenames if is_recently_modified(file, RECENT_DAY)]
+        else:
+            file_paths = filenames
+    else:
+        if contain_recent_files_only:
+            file_paths = [file for file in list_all_files(absolute_path) if is_recently_modified(file, RECENT_DAY)]
+        else:
+            file_paths = list_all_files(absolute_path)
+
+    if len(file_paths) == 0:
+        buffer.write("No file content available.\n\n")
 
     for file_path in file_paths:
         filename = os.path.basename(file_path)
@@ -116,9 +151,12 @@ def content_output(absolute_path, filenames=None, output=None):
         buffer.write("\n```\n\n")
 
     buffer.write("## Summary\n")
-    if (filenames):
-        file_count = len(filenames)
-    buffer.write(f"- Total files: {file_count}\n")
+    if contain_recent_files_only:
+        buffer.write(f"- Total files(recently changed): {len(file_paths)}\n")
+    else:
+        if (filenames):
+            file_count = len(filenames)
+        buffer.write(f"- Total files: {file_count}\n")
     buffer.write(f"- Total lines: {line_count}\n\n")
 
     content = buffer.getvalue()
