@@ -189,7 +189,6 @@ def pull_git_info(absolute_path):
         return None
 
 def analyze_structure(absolute_path):
-    global file_count
     output = []
 
     for dirpath, dirnames, filenames in os.walk(absolute_path):
@@ -205,7 +204,6 @@ def analyze_structure(absolute_path):
         # Print files
         for filename in filenames:
             output.append(f"{indent}  {filename}")
-            file_count += 1
 
     return "\n".join(output)
 
@@ -235,6 +233,7 @@ def analyze_file_content(file_path):
         return f"Failed to read {file_path}: {e}"
 
 def list_all_files(absolute_path):
+    global file_count
     file_paths = []
     for root, dirs, files in os.walk(absolute_path):
         # Skip .git directory and its contents
@@ -247,6 +246,7 @@ def list_all_files(absolute_path):
 
             full_path = os.path.join(root, file)
             file_paths.append(full_path)
+            file_count += 1
 
     return file_paths
 
