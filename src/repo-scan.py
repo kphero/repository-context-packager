@@ -158,7 +158,6 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
             file_paths = [file for file in list_all_files(absolute_path) if is_recently_modified(file, RECENT_DAY)]
         else:
             file_paths = list_all_files(absolute_path)
-        logging.info("Discovered %d files in directory.", len(file_paths))
 
     if len(file_paths) == 0:
         buffer.write("No file content available.\n\n")
@@ -166,7 +165,6 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
 
     for file_path in file_paths:
         filename = os.path.basename(file_path)
-        logging.info("Processing file: %s", filename)
 
         buffer.write(f"### File: {filename}\n")
         buffer.write("```\n")
@@ -182,7 +180,6 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
             file_count = len(filenames)
         buffer.write(f"- Total files: {file_count}\n")
     buffer.write(f"- Total lines: {line_count}\n\n")
-    logging.info("Summary generated: %d files, %d lines.", file_count, line_count)
 
     content = buffer.getvalue()
 
@@ -255,65 +252,89 @@ def analyze_structure(absolute_path):
 def analyze_file_content(file_path):
     global line_count
     try:
+        logging.info("Analyzing file: %s", file_path)
+
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read(MAX_FILE_BYTES + 1)
 
-            lines = content.splitlines()
-            line_count += len(lines)
+        lines = content.splitlines()
+        line_count += len(lines)
+        logging.info("File %s has %d lines (running total: %d)",
+                     file_path, len(lines), line_count)
 
-            escaped_lines = []
-            for line in lines:
-                # Replace triple backticks to keep markdown output clean
-                escaped_line = (line.replace("```", "&#96;&#96;&#96;"))
-                escaped_lines.append(escaped_line)
+        escaped_lines = []
+        for line in lines:
+            # Replace triple backticks to keep markdown output clean
+            escaped_line = line.replace("```", "&#96;&#96;&#96;")
+            escaped_lines.append(escaped_line)
 
-            result = "\n".join(escaped_lines)
+        result = "\n".join(escaped_lines)
 
-            if len(content.encode("utf-8")) > MAX_FILE_BYTES:
-                result += "\n\n[Truncated: file exceeds 16KB limit]"
+        if len(content.encode("utf-8")) > MAX_FILE_BYTES:
+            logging.info("File %s exceeds %d bytes, truncating output.",
+                         file_path, MAX_FILE_BYTES)
+            result += "\n\n[Truncated: file exceeds 16KB limit]"
+        else:
+            logging.info("File %s processed successfully.", file_path)
 
-            return result
+        return result
 
     except Exception as e:
+        logging.error("Failed to read %s: %s", file_path, e)
         return f"Failed to read {file_path}: {e}"
+
 
 def list_all_files(absolute_path):
     global file_count
     file_paths = []
+
+    logging.info("Listing all files under: %s", absolute_path)
+
     for root, dirs, files in os.walk(absolute_path):
         # Skip .git directory and its contents
-        dirs[:] = [d for d in dirs if d != ".git"]
+        if ".git" in dirs:
+            dirs.remove(".git")
+            logging.info("Skipping .git directory in: %s", root)
 
         for file in files:
             # Skip hidden files
             if file.startswith("."):
+                logging.info("Skipping hidden file: %s in %s", file, root)
                 continue
 
             full_path = os.path.join(root, file)
             file_paths.append(full_path)
             file_count += 1
+            logging.info("Discovered file: %s", full_path)
 
+    logging.info("Finished listing files. Total files found: %d", file_count)
     return file_paths
+
 
 def write_results(content, output):
     try:
         with open(output, "w", encoding="utf-8") as f:
             f.write(content)
-            print(f"Results successfully written to {output}")
+        logging.info("Results successfully written to %s", output)
     except Exception as e:
-        print(f"Failed to write to {output}: {e}")
+        logging.error("Failed to write to %s: %s", output, e)
+
 
 if __name__ == "__main__":        
+    if len(sys.argv) == 1:
+        logging.basicConfig(
+            level=logging.WARNING,
+            format="%(levelname)s: %(message)s"
+        )
+        logging.error("No arguments provided.\n")
+        parser.print_help(sys.stderr)
+        sys.exit(1)
+
     args = parser.parse_args()
 
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(levelname)s: %(message)s"
     )
-
-    if len(sys.argv) == 1:
-        print("ERROR: No arguments provided.\n")
-        parser.print_help(sys.stderr)
-        sys.exit(1)
 
     analyze_path_args(args)
