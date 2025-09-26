@@ -4,6 +4,7 @@ import git
 import io
 import sys
 import time
+import logging
 
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
@@ -43,18 +44,18 @@ parser.add_argument(
     )
 
 parser.add_argument(
-    "-v", "--verbose",
-    help="Print detailed progress information o stderr",
+    "-vb", "--verbose",
+    help="Enable detailed progress information",
     action="store_true"
     )
 
 ## Functions ######################################################################################
-def analyze_path_args(paths):
+def analyze_path_args(args):
     directories = []
     filenames = []
 
     # Determine if argument is a directory path or a filename
-    for path in paths:
+    for path in args.paths:
         absolute_path = os.path.normpath(os.path.abspath(path))
 
         if os.path.isdir(absolute_path):
@@ -64,30 +65,31 @@ def analyze_path_args(paths):
     
     # Enforce only one directory and seperate directory and filename arguments
     if len(directories) > 1:
-        print("ERROR: Only one directory path is allowed.", file=sys.stderr)
+        logging.error("Only one directory path is allowed.")
         sys.exit(1)
     elif len(directories) > 0 and len(filenames) > 0:
-        print("ERROR: Please enter only a single directory path OR one or more filenames.", file=sys.stderr)
+        logging.error("Please enter only a single directory path OR one or more filenames.")
         sys.exit(1)
 
     # Directory output
     if (directories):
-        print(f"Analyzing directory: {directories[0]}")
+        logging.info("Analyzing directory: %s", directories[0])
         content_output(directories[0], args.recent, None, args.output)
 
     # File output
     elif (filenames):
         # Use current directory to search filenames
         search_dir = os.getcwd()
-        print(f"Searching in directory: {search_dir}") 
+        logging.info("Searching in directory: %s", search_dir)
+
 
         # Find filenames in current directory
         for name in filenames:
             for root, _, files in os.walk(search_dir):
                 if name in files:
-                    print(f"Found {name} in {search_dir}...")
+                    logging.info("Found %s in %s", name, root)
                 else:
-                    print(f"ERROR: {name} not found.", file=sys.stderr)
+                    logging.error("%s not found.", name)
                     sys.exit(1)
         
         content_output(search_dir, args.recent, filenames, args.output)
@@ -267,9 +269,14 @@ def write_results(content, output):
 if __name__ == "__main__":        
     args = parser.parse_args()
 
+    logging.basicConfig(
+        level=logging.INFO if args.verbose else logging.WARNING,
+        format="%(levelname)s: %(message)s"
+    )
+
     if len(sys.argv) == 1:
         print("ERROR: No arguments provided.\n")
         parser.print_help(sys.stderr)
         sys.exit(1)
 
-    analyze_path_args(args.paths)
+    analyze_path_args(args)
