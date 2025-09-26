@@ -137,7 +137,6 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
     buffer.write("```\n")
     buffer.write(f"{structure}\n")
     buffer.write("```\n\n")
-    logging.info("Directory structure analyzed.")
 
     # File contents
     buffer.write("## File Contents\n")
@@ -203,11 +202,11 @@ def pull_git_info(absolute_path):
 
         # Get the latest commit
         commit = repo.head.commit
-        logging.debug("Latest commit hash: %s", commit.hexsha)
+        logging.info("Latest commit hash: %s", commit.hexsha)
 
         # Get current branch
         branch = repo.active_branch.name
-        logging.debug("Active branch: %s", branch)
+        logging.info("Active branch: %s", branch)
 
         # Output
         logging.info("Git info successfully retrieved for %s", absolute_path)
@@ -228,22 +227,30 @@ def pull_git_info(absolute_path):
 
 def analyze_structure(absolute_path):
     output = []
+    logging.info("Analyzing directory structure at: %s", absolute_path)
 
     for dirpath, dirnames, filenames in os.walk(absolute_path):
+        # Skip .git directory
         if ".git" in dirnames:
             dirnames.remove(".git")
+            logging.info("Skipping .git directory in: %s", dirpath)
 
         depth = dirpath.replace(absolute_path, "").count(os.sep)
         indent = "  " * depth
 
-        # Print subdirectory
-        output.append(f"{indent}{os.path.basename(dirpath) or absolute_path}/")
+        # Add subdirectory
+        dirname = os.path.basename(dirpath) or absolute_path
+        output.append(f"{indent}{dirname}/")
+        logging.info("Found directory: %s", dirname)
 
-        # Print files
+        # Add files
         for filename in filenames:
             output.append(f"{indent}  {filename}")
+            logging.info("Found file: %s in %s", filename, dirpath)
 
+    logging.info("Finished analyzing structure for: %s", absolute_path)
     return "\n".join(output)
+
 
 def analyze_file_content(file_path):
     global line_count
