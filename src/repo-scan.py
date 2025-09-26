@@ -95,6 +95,7 @@ def analyze_path_args(args):
         content_output(search_dir, args.recent, filenames, args.output)
 
 def is_recently_modified(file_path, recent_day=RECENT_DAY):
+    logging.info("Checking file: %s", file_path)
     try:
         file_stats = os.stat(file_path)
         last_modified_time = file_stats.st_mtime
@@ -103,8 +104,11 @@ def is_recently_modified(file_path, recent_day=RECENT_DAY):
         time_difference = current_time - last_modified_time
         days_difference = time_difference / (60 * 60 * 24)
 
+        logging.info("Last modified: %.2f days ago", days_difference)
+
         return days_difference <= recent_day
-    except FileNotFoundError:
+    except FileNotFoundError as e:
+        logging.error("OS error while checking %s: %s", file_path, e)
         return False
 
 def content_output(absolute_path, contain_recent_files_only, filenames=None, output=None):
