@@ -166,7 +166,16 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
     for file_path in file_paths:
         filename = os.path.basename(file_path)
 
-        buffer.write(f"### File: {filename}\n")
+        try:
+            # Get last modified time (epoch seconds)
+            time_seconds = os.path.getmtime(file_path)
+            # Format into human‑readable string
+            modified_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_seconds))
+        except Exception as e:
+            logging.error("Could not retrieve modification time for %s: %s", file_path, e)
+            modified_time = "Unknown"
+
+        buffer.write(f"### File: {filename} (Modified: {modified_time})\n")
         buffer.write("```\n")
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
