@@ -42,6 +42,12 @@ parser.add_argument(
     action="store_true"
     )
 
+parser.add_argument(
+    "-v", "--verbose",
+    help="Print detailed progress information o stderr",
+    action="store_true"
+    )
+
 ## Functions ######################################################################################
 def analyze_path_args(paths):
     directories = []
