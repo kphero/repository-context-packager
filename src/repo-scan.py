@@ -128,10 +128,8 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
     git_info = pull_git_info(absolute_path)
     if git_info:
         buffer.write(f"{git_info}\n\n")
-        logging.info("Git information retrieved successfully.")
     else:
         buffer.write(f"Not a git repository\n\n")
-        logging.info("No git repository detected at %s", absolute_path)
 
     # Structure
     buffer.write(f"## Structure\n")
@@ -200,23 +198,33 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
 
 def pull_git_info(absolute_path):
     try:
+        logging.info("Attempting to retrieve Git info from: %s", absolute_path)
         repo = git.Repo(absolute_path)
 
         # Get the latest commit
         commit = repo.head.commit
+        logging.debug("Latest commit hash: %s", commit.hexsha)
 
         # Get current branch
         branch = repo.active_branch.name
+        logging.debug("Active branch: %s", branch)
 
         # Output
-        return(
+        logging.info("Git info successfully retrieved for %s", absolute_path)
+        return (
             f"- Commit: {commit.hexsha}\n"
             f"- Branch: {branch}\n"
             f"- Author: {commit.author.name} <{commit.author.email}>\n"
             f"- Date: {commit.committed_datetime.strftime('%a %b %d %H:%M:%S %Y %z')}"
         )
+
     except git.exc.InvalidGitRepositoryError:
+        logging.warning("No valid Git repository found at: %s", absolute_path)
         return None
+    except Exception as e:
+        logging.error("Unexpected error while retrieving Git info from %s: %s", absolute_path, e)
+        return None
+
 
 def analyze_structure(absolute_path):
     output = []
