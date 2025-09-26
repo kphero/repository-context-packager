@@ -113,72 +113,90 @@ def is_recently_modified(file_path, recent_day=RECENT_DAY):
 
 def content_output(absolute_path, contain_recent_files_only, filenames=None, output=None):
     global file_count, line_count
-    # Write to buffer then determine if output is displayed in terminal or in file
     buffer = io.StringIO()
 
+    logging.info("Starting content output for path: %s", absolute_path)
+
+    # Repository context
     buffer.write(f"# Repository Context\n\n")
 
     buffer.write(f"## File System Location\n\n")
     buffer.write(f"{absolute_path}\n\n")
 
+    # Git info
     buffer.write(f"## Git Info\n\n")
     git_info = pull_git_info(absolute_path)
     if git_info:
         buffer.write(f"{git_info}\n\n")
+        logging.info("Git information retrieved successfully.")
     else:
         buffer.write(f"Not a git repository\n\n")
+        logging.info("No git repository detected at %s", absolute_path)
 
+    # Structure
     buffer.write(f"## Structure\n")
     structure = analyze_structure(absolute_path)
     buffer.write("```\n")
     buffer.write(f"{structure}\n")
     buffer.write("```\n\n")
+    logging.info("Directory structure analyzed.")
 
+    # File contents
     buffer.write("## File Contents\n")
     if contain_recent_files_only:
         buffer.write("[Only the recently modified files would be included here]\n\n")
+        logging.info("Filtering for recently modified files only.")
     else:
         buffer.write("\n")
+        logging.info("Including all files.")
 
-    if (filenames):
+    if filenames:
         if contain_recent_files_only:
             file_paths = [file for file in filenames if is_recently_modified(file, RECENT_DAY)]
         else:
             file_paths = filenames
+        logging.info("Using provided filenames: %d files", len(file_paths))
     else:
         if contain_recent_files_only:
             file_paths = [file for file in list_all_files(absolute_path) if is_recently_modified(file, RECENT_DAY)]
         else:
             file_paths = list_all_files(absolute_path)
+        logging.info("Discovered %d files in directory.", len(file_paths))
 
     if len(file_paths) == 0:
         buffer.write("No file content available.\n\n")
+        logging.info("No files matched the criteria.")
 
     for file_path in file_paths:
         filename = os.path.basename(file_path)
+        logging.info("Processing file: %s", filename)
 
         buffer.write(f"### File: {filename}\n")
         buffer.write("```\n")
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
 
+    # Summary
     buffer.write("## Summary\n")
     if contain_recent_files_only:
         buffer.write(f"- Total files(recently changed): {len(file_paths)}\n")
     else:
-        if (filenames):
+        if filenames:
             file_count = len(filenames)
         buffer.write(f"- Total files: {file_count}\n")
     buffer.write(f"- Total lines: {line_count}\n\n")
+    logging.info("Summary generated: %d files, %d lines.", file_count, line_count)
 
     content = buffer.getvalue()
 
     if output:
-        print(f"Writing results to {output}..")
+        logging.info("Writing results to file: %s", output)
         write_results(content, output)
     else:
+        logging.info("Displaying results to terminal.")
         print("Displaying results..\n")
-        print(content) 
+        print(content)
+ 
 
 def pull_git_info(absolute_path):
     try:
