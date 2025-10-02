@@ -102,6 +102,8 @@ def load_config_file(config_name=CONFIG_FILE):
 
 ## Functions ######################################################################################
 def analyze_path_args(args):
+    
+
     directories = []
     filenames = []
 
@@ -217,16 +219,18 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
     for file_path in file_paths:
         filename = os.path.basename(file_path)
 
-        try:
-            # Get last modified time (epoch seconds)
-            time_seconds = os.path.getmtime(file_path)
-            # Format into human‑readable string
-            modified_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_seconds))
-        except Exception as e:
-            logging.error("Could not retrieve modification time for %s: %s", file_path, e)
-            modified_time = "Unknown"
+        # Only print modified time if recent flag is True
+        if contain_recent_files_only:
+            try:
+                time_seconds = os.path.getmtime(file_path)
+                modified_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_seconds))
+            except Exception as e:
+                logging.error("Could not retrieve modification time for %s: %s", file_path, e)
+                modified_time = "Unknown"
+            buffer.write(f"### File: {filename} (Modified: {modified_time})\n")
+        else:
+            buffer.write(f"### File: {filename}\n")
 
-        buffer.write(f"### File: {filename} (Modified: {modified_time})\n")
         buffer.write("```\n")
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
@@ -394,26 +398,37 @@ if __name__ == "__main__":
             logging.warning("TOML support not found. Install 'toml' package to enable config file support.")
 
     # Merge values: config provides defaults, CLI overrides config
-    # -- output
+   # -- output
     if args.output is None and "output" in config:
         args.output = config["output"]
 
-    # -- recent
-    if (not args.recent) and config.get("recent", False):
-        args.recent = True
+    
+# Recent
+    if not args.recent and "recent" in config:
+        # Convert only if it is actual bool; otherwise treat as False
+        if isinstance(config["recent"], bool):
+            args.recent = config["recent"]
+        else:
+            args.recent = str(config["recent"]).lower() == "true"
 
-    # -- verbose
-    if (not args.verbose) and config.get("verbose", False):
-        args.verbose = True
+    # -- verbose  
+    if not args.verbose and "verbose" in config:
+        if isinstance(config["verbose"], bool):
+            args.verbose = config["verbose"]
+        else:
+            if str(config["verbose"]).lower() == "true":
+                args.verbose = True
+            else:
+                args.verbose = False
 
-    # -- paths
-    if (not args.paths or len(args.paths) == 0) and "paths" in config:
+    # -- paths 
+    if not args.paths and "paths" in config:
         if isinstance(config["paths"], list):
             args.paths = config["paths"]
         else:
             args.paths = [config["paths"]]
 
-    # -- max_file_size -> override MAX_FILE_BYTES if provided (in bytes)
+    # -- max_file_size
     if "max_file_size" in config:
         try:
             val = int(config["max_file_size"])
