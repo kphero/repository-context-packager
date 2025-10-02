@@ -65,6 +65,41 @@ parser.add_argument(
     action="store_true"
     )
 
+## Config loader #################################################################################
+def load_config_file(config_name=CONFIG_FILE):
+    """
+    Load config from a TOML file in the current working directory.
+    - If file does not exist: returns empty dict.
+    - If file exists but cannot be parsed: exit with error.
+    - Returns only recognized keys.
+    """
+    if toml_load_file is None:
+        # toml not available: will continue without config, but inform user in verbose mode
+        return {}
+
+    config_path = os.path.join(os.getcwd(), config_name)
+    if not os.path.exists(config_path):
+        return {}
+
+    try:
+        parsed = toml_load_file(config_path)
+    except Exception as e:
+        # clear error message and exit (requirement)
+        logging.error("Failed to parse TOML config %s: %s", config_path, e)
+        sys.exit(2)
+
+    if not isinstance(parsed, dict):
+        return {}
+
+    # Recognized keys: only accept known ones (ignore unknown keys)
+    recognized = {"output", "recent", "verbose", "paths", "max_file_size"}
+    filtered = {}
+    for k, v in parsed.items():
+        if k in recognized:
+            filtered[k] = v
+    return filtered
+
+
 ## Functions ######################################################################################
 def analyze_path_args(args):
     directories = []
@@ -346,17 +381,52 @@ def write_results(content, output):
 
 
 if __name__ == "__main__":        
-    if len(sys.argv) == 1:
-        logging.basicConfig(
-            level=logging.WARNING,
-            format="%(levelname)s: %(message)s"
-        )
-        logging.error("No arguments provided.\n")
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
+    # Parse CLI args
     args = parser.parse_args()
 
+    # Load config from TOML (if present)
+    config = load_config_file()
+
+    # If TOML package is required and not present, we still continue but notify user when verbose
+    if toml_load_file is None:
+        # No toml support available: user must have installed dependency to use config file
+        if args.verbose:
+            logging.warning("TOML support not found. Install 'toml' package to enable config file support.")
+
+    # Merge values: config provides defaults, CLI overrides config
+    # -- output
+    if args.output is None and "output" in config:
+        args.output = config["output"]
+
+    # -- recent
+    if (not args.recent) and config.get("recent", False):
+        args.recent = True
+
+    # -- verbose
+    if (not args.verbose) and config.get("verbose", False):
+        args.verbose = True
+
+    # -- paths
+    if (not args.paths or len(args.paths) == 0) and "paths" in config:
+        if isinstance(config["paths"], list):
+            args.paths = config["paths"]
+        else:
+            args.paths = [config["paths"]]
+
+    # -- max_file_size -> override MAX_FILE_BYTES if provided (in bytes)
+    if "max_file_size" in config:
+        try:
+            val = int(config["max_file_size"])
+            if val > 0:
+                MAX_FILE_BYTES = val
+        except Exception:
+            logging.warning("Invalid max_file_size in config; ignoring.")
+
+    # If still no paths provided, default to current directory
+    if not args.paths:
+        args.paths = [os.getcwd()]
+
+    # Configure logging now that verbose setting is known
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(levelname)s: %(message)s"
