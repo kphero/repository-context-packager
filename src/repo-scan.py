@@ -6,6 +6,21 @@ import sys
 import time
 import logging
 
+try:
+    import tomllib  # Python 3.11+
+    def toml_load_file(path):
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+except Exception:
+    try:
+        import toml
+        def toml_load_file(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return toml.load(f)
+    except Exception:
+        toml_load_file = None
+
+
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
 version_num = "0.1.0"
@@ -13,6 +28,7 @@ file_count = 0
 line_count = 0
 MAX_FILE_BYTES = 16 * 1024 # 16KB
 RECENT_DAY = 3000 / (60*60*24)
+CONFIG_FILE = ".repo-scan-config.toml"
 
 ## Parser Arguments ###############################################################################
 parser.add_argument(
