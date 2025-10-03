@@ -23,7 +23,7 @@ except Exception:
 
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
-version_num = "0.1.0"
+version_num = "0.1.3"
 file_count = 0
 line_count = 0
 MAX_FILE_BYTES = 16 * 1024 # 16KB

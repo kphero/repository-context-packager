@@ -1,6 +1,6 @@
 # repository-context-packager
 
-**Version:** 0.1.0
+**Version:** 0.1.3
 
 A command-line tool to analyze local git repositories and create a text file containing repository content optimized for sharing with Large Language Models.
 
