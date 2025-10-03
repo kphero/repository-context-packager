@@ -6,6 +6,21 @@ import sys
 import time
 import logging
 
+try:
+    import tomllib  # Python 3.11+
+    def toml_load_file(path):
+        with open(path, "rb") as f:
+            return tomllib.load(f)
+except Exception:
+    try:
+        import toml
+        def toml_load_file(path):
+            with open(path, "r", encoding="utf-8") as f:
+                return toml.load(f)
+    except Exception:
+        toml_load_file = None
+
+
 ## Global Variables ###############################################################################
 parser = argparse.ArgumentParser()
 version_num = "0.1.0"
@@ -13,6 +28,7 @@ file_count = 0
 line_count = 0
 MAX_FILE_BYTES = 16 * 1024 # 16KB
 RECENT_DAY = 3000 / (60*60*24)
+CONFIG_FILE = ".repo-scan-config.toml"
 
 ## Parser Arguments ###############################################################################
 parser.add_argument(
@@ -49,8 +65,45 @@ parser.add_argument(
     action="store_true"
     )
 
+## Config loader #################################################################################
+def load_config_file(config_name=CONFIG_FILE):
+    """
+    Load config from a TOML file in the current working directory.
+    - If file does not exist: returns empty dict.
+    - If file exists but cannot be parsed: exit with error.
+    - Returns only recognized keys.
+    """
+    if toml_load_file is None:
+        # toml not available: will continue without config, but inform user in verbose mode
+        return {}
+
+    config_path = os.path.join(os.getcwd(), config_name)
+    if not os.path.exists(config_path):
+        return {}
+
+    try:
+        parsed = toml_load_file(config_path)
+    except Exception as e:
+        # clear error message and exit (requirement)
+        logging.error("Failed to parse TOML config %s: %s", config_path, e)
+        sys.exit(2)
+
+    if not isinstance(parsed, dict):
+        return {}
+
+    # Recognized keys: only accept known ones (ignore unknown keys)
+    recognized = {"output", "recent", "verbose", "paths", "max_file_size"}
+    filtered = {}
+    for k, v in parsed.items():
+        if k in recognized:
+            filtered[k] = v
+    return filtered
+
+
 ## Functions ######################################################################################
 def analyze_path_args(args):
+    
+
     directories = []
     filenames = []
 
@@ -166,16 +219,18 @@ def content_output(absolute_path, contain_recent_files_only, filenames=None, out
     for file_path in file_paths:
         filename = os.path.basename(file_path)
 
-        try:
-            # Get last modified time (epoch seconds)
-            time_seconds = os.path.getmtime(file_path)
-            # Format into human‑readable string
-            modified_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_seconds))
-        except Exception as e:
-            logging.error("Could not retrieve modification time for %s: %s", file_path, e)
-            modified_time = "Unknown"
+        # Only print modified time if recent flag is True
+        if contain_recent_files_only:
+            try:
+                time_seconds = os.path.getmtime(file_path)
+                modified_time = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(time_seconds))
+            except Exception as e:
+                logging.error("Could not retrieve modification time for %s: %s", file_path, e)
+                modified_time = "Unknown"
+            buffer.write(f"### File: {filename} (Modified: {modified_time})\n")
+        else:
+            buffer.write(f"### File: {filename}\n")
 
-        buffer.write(f"### File: {filename} (Modified: {modified_time})\n")
         buffer.write("```\n")
         buffer.write(analyze_file_content(file_path))
         buffer.write("\n```\n\n")
@@ -330,17 +385,63 @@ def write_results(content, output):
 
 
 if __name__ == "__main__":        
-    if len(sys.argv) == 1:
-        logging.basicConfig(
-            level=logging.WARNING,
-            format="%(levelname)s: %(message)s"
-        )
-        logging.error("No arguments provided.\n")
-        parser.print_help(sys.stderr)
-        sys.exit(1)
-
+    # Parse CLI args
     args = parser.parse_args()
 
+    # Load config from TOML (if present)
+    config = load_config_file()
+
+    # If TOML package is required and not present, we still continue but notify user when verbose
+    if toml_load_file is None:
+        # No toml support available: user must have installed dependency to use config file
+        if args.verbose:
+            logging.warning("TOML support not found. Install 'toml' package to enable config file support.")
+
+    # Merge values: config provides defaults, CLI overrides config
+   # -- output
+    if args.output is None and "output" in config:
+        args.output = config["output"]
+
+    
+# Recent
+    if not args.recent and "recent" in config:
+        # Convert only if it is actual bool; otherwise treat as False
+        if isinstance(config["recent"], bool):
+            args.recent = config["recent"]
+        else:
+            args.recent = str(config["recent"]).lower() == "true"
+
+    # -- verbose  
+    if not args.verbose and "verbose" in config:
+        if isinstance(config["verbose"], bool):
+            args.verbose = config["verbose"]
+        else:
+            if str(config["verbose"]).lower() == "true":
+                args.verbose = True
+            else:
+                args.verbose = False
+
+    # -- paths 
+    if not args.paths and "paths" in config:
+        if isinstance(config["paths"], list):
+            args.paths = config["paths"]
+        else:
+            args.paths = [config["paths"]]
+
+    # -- max_file_size
+    if "max_file_size" in config:
+        try:
+            val = int(config["max_file_size"])
+            if val > 0:
+                MAX_FILE_BYTES = val
+        except Exception:
+            logging.warning("Invalid max_file_size in config; ignoring.")
+
+    # If still no paths provided, default to current directory
+    if not args.paths:
+        args.paths = [os.getcwd()]
+
+    # Configure logging now that verbose setting is known
     logging.basicConfig(
         level=logging.INFO if args.verbose else logging.WARNING,
         format="%(levelname)s: %(message)s"

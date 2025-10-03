@@ -60,12 +60,6 @@ cd repo-context-packager
 pip install -r requirements.txt
 ```
 
-Or manually:
-
-```bash
-pip install GitPython
-```
-
 ### 4. Test the Installation
 
 ```bash
@@ -94,6 +88,21 @@ python repo-scan.py --help
 | `--output [filename]` | `-o`  | Optional | Write results to a file. If no filename is given, defaults to `output.txt`.    |
 | `paths`               | —     | List     | One or more file or directory paths to analyze. Defaults to current directory. |
 | `--recent`            | `-r`  | Flag     | Include only recently modified files (in the last 7 days)                      |
+
+---
+
+### Configuration via TOML
+
+You can also set default options in `.repo-scan-config.toml`. Example:
+
+```toml
+output = "default_output.txt"
+recent = false        # Include only recent files? (true/false)
+verbose = false
+paths = ["src"]        # can be a string or a list of paths
+max_file_size = 16384  # in bytes
+```
+CLI arguments always override values in the config file. If the file exists but is invalid TOML, the tool will exit with an error.
 
 ---
 
