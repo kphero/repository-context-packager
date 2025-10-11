@@ -5,7 +5,7 @@ import sys
 
 from analyzer import config, paths
 
-VERSION_NUM = "0.1.3"
+VERSION_NUM = "0.2.1"
 DEFAULT_MAX_FILE_BYTES = 16 * 1024
 
 

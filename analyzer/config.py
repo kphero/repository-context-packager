@@ -7,7 +7,7 @@ except ImportError:
     toml = None
 
 
-DEFAULT_CONFIG_FILE = ".repo-scan-config.toml"
+DEFAULT_CONFIG_FILE = ".scan-repo-config.toml"
 
 
 def load_config_file(path: str = DEFAULT_CONFIG_FILE) -> dict:

@@ -1,6 +1,6 @@
 # repository-context-packager
 
-**Version:** 0.1.3
+**Version:** 0.2.1
 
 A command-line tool to analyze local git repositories and create a text file containing repository content optimized for sharing with Large Language Models.
 
@@ -63,13 +63,13 @@ pip install -r requirements.txt
 ### 4. Test the Installation
 
 ```bash
-python repo-scan.py ./test-directory
+python scan-repo.py ./test-directory
 ```
 
 Or display help:
 
 ```bash
-python repo-scan.py --help
+python scan-repo.py --help
 ```
 
 ### Troubleshooting
@@ -93,7 +93,7 @@ python repo-scan.py --help
 
 ### Configuration via TOML
 
-You can also set default options in `.repo-scan-config.toml`. Example:
+You can also set default options in `.scan-repo-config.toml`. Example:
 
 ```toml
 output = "default_output.txt"
@@ -109,7 +109,7 @@ CLI arguments always override values in the config file. If the file exists but 
 ## Usage
 
 ```bash
-python repo-scan.py [-h] [-v] [-r] [paths ...] [-o [OUTPUT]]
+python scan-repo.py [-h] [-v] [-r] [paths ...] [-o [OUTPUT]]
 ```
 
 ### Examples
@@ -117,28 +117,28 @@ python repo-scan.py [-h] [-v] [-r] [paths ...] [-o [OUTPUT]]
 - Analyze current directory and display results:
 
   ```bash
-  python repo-scan.py .
+  python scan-repo.py .
   ```
 
 - Analyze a folder and write results to `context-package.md`:
 
   ```bash
-  python repo-scan.py ./my_project -o context-package.md
+  python scan-repo.py ./my_project -o context-package.md
   ```
 
 - Analyze multiple files:
 
   ```bash
-  python repo-scan.py file1.txt file2.md
+  python scan-repo.py file1.txt file2.md
   ```
 
 - Analyze recent files in current directory:
 
   ```bash
-  python repo-scan.py . -r
+  python scan-repo.py . -r
   ```
 
-  > **Note:** `repo-scan.py` only detects files located in the same directory as the script. Ensure that all target files are placed in the script’s directory before execution, or that `repo-scan.py` is placed in the directory where the files are located.
+  > **Note:** `scan-repo.py` only detects files located in the same directory as the script. Ensure that all target files are placed in the script’s directory before execution, or that `scan-repo.py` is placed in the directory where the files are located.
 
 ---
 
