@@ -3,3 +3,4 @@ output = ""
 recent = false
 verbose = false
 max_file_size = 16238
+remove-comments = false
