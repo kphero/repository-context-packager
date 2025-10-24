@@ -44,6 +44,11 @@ def build_parser():
         default=None,
         help="Maximum file size in bytes to include (default from config or 16KB)"
     )
+    parser.add_argument(
+        "-rc", "--remove-comments",
+        action="store_true",
+        help="Remove comments from code files in the output"
+    )
 
     return parser
 
@@ -85,6 +90,9 @@ def main(argv: list[str] | None = None) -> None:
     args.max_file_size = config.merge_config(
         args, cfg, "max_file_size", int, args.max_file_size
     ) or DEFAULT_MAX_FILE_BYTES
+    args.remove_comments = config.merge_config(
+        args, cfg, "remove_comments", bool, args.remove_comments
+    )
 
     # Default to current working directory if no paths are provided
     if not args.paths:
