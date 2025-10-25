@@ -6,7 +6,7 @@ import logging
 from analyzer import git, structure, files
 
 def content_output(absolute_path, contain_recent_files_only,
-                   filenames=None, output=None, max_file_size=16*1024):
+                   filenames=None, output=None, max_file_size=16*1024, remove_comments=False) -> None:
     """
     Generate repository context output for a directory or set of files.
     """
@@ -52,7 +52,7 @@ def content_output(absolute_path, contain_recent_files_only,
         logging.info("No files matched the criteria.")
     else:
         for file_path in file_paths:
-            section, lines = render_file_section(file_path, contain_recent_files_only, max_file_size)
+            section, lines = render_file_section(file_path, contain_recent_files_only, max_file_size, remove_comments)
             buffer.write(section)
             file_count += 1
             line_count += lines
@@ -76,7 +76,7 @@ def content_output(absolute_path, contain_recent_files_only,
         print("Displaying results..\n")
         print(content)
 
-def render_file_section(file_path: str, recent_only: bool, max_file_size: int) -> tuple[str, int]:
+def render_file_section(file_path: str, recent_only: bool, max_file_size: int, remove_comments: bool) -> tuple[str, int]:
     """
     Render a markdown-formatted section for a file, including optional modification time.
 
@@ -108,7 +108,7 @@ def render_file_section(file_path: str, recent_only: bool, max_file_size: int) -
         header += f" (Modified: {modified})"
     
     # Analyze file content
-    content, lines = files.analyze_file_content(file_path, max_file_size)
+    content, lines = files.analyze_file_content(file_path, max_file_size, remove_comments)
 
     # Format the section with markdown code block
     return f"{header}\n```\n{content}\n```\n\n", lines

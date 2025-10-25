@@ -92,7 +92,8 @@ def analyze_path_args(args: argparse.Namespace) -> None:
             args.recent,
             None,
             args.output,
-            args.max_file_size
+            args.max_file_size,
+            args.remove_comments
         )
 
     elif filenames:
@@ -114,5 +115,6 @@ def analyze_path_args(args: argparse.Namespace) -> None:
             args.recent,
             filenames,
             args.output,
-            args.max_file_size
+            args.max_file_size,
+            args.remove_comments
         )

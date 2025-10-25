@@ -26,6 +26,9 @@ def build_parser():
     )
     parser.add_argument(
         "-o", "--output",
+        nargs="?",
+        const="context-package.md",
+        default=None,
         help="Write results to file instead of stdout"
     )
     parser.add_argument(

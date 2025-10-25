@@ -1,6 +1,9 @@
 import os
 import time
 import logging
+import re
+
+from analyzer import removelines
 
 def is_recently_modified(file_path: str, recent_day: int = 7) -> bool:
     """
@@ -29,7 +32,7 @@ def is_recently_modified(file_path: str, recent_day: int = 7) -> bool:
         return False
 
 
-def analyze_file_content(file_path: str, max_bytes: int) -> tuple[str, int]:
+def analyze_file_content(file_path: str, max_bytes: int, remove_comments: bool = False) -> tuple[str, int]:
     """
     Read and sanitize the content of a file, up to a byte limit.
 
@@ -47,6 +50,12 @@ def analyze_file_content(file_path: str, max_bytes: int) -> tuple[str, int]:
         # Open the file in UTF-8 encoding and read slightly more than max_bytes
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read(max_bytes + 1)
+
+        if remove_comments:
+            # Determine file extension
+            _, file_extension = os.path.splitext(file_path)
+            # Remove comments from the content
+            content = removelines.remove_comments_from_code(content, file_extension)
 
         # Split content into lines
         lines = content.splitlines()
