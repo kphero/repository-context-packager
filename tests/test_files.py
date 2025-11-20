@@ -3,7 +3,7 @@ import tempfile
 import os
 import time
 from unittest.mock import patch, MagicMock
-from analyzer.files import is_recently_modified
+from repository_context_packager.analyzer.files import is_recently_modified
 
 
 @pytest.mark.parametrize("days_ago,threshold,expected", [

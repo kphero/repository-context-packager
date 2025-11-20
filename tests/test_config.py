@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import os
 
-from analyzer.config import load_config_file, DEFAULT_CONFIG_FILE
+from repository_context_packager.analyzer.config import load_config_file, DEFAULT_CONFIG_FILE
 
 
 class TestLoadConfigFile:

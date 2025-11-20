@@ -2,7 +2,7 @@ import pytest
 import tempfile
 import os
 
-from analyzer.paths import validate_paths
+from repository_context_packager.analyzer.paths import validate_paths
 
 
 class TestValidatePaths:

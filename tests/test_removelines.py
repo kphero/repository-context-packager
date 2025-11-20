@@ -1,5 +1,5 @@
 import pytest
-from analyzer.removelines import remove_hash_comments
+from repository_context_packager.analyzer.removelines import remove_hash_comments
 
 
 class TestRemoveHashComments:
