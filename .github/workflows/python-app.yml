@@ -35,8 +35,8 @@ jobs:
                   flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
             - name: Run CLI smoke test
               run: |
-                  python repository_context_packager/scan_repo.py --help
-                  python repository_context_packager/scan_repo.py --version
+                  python -m repository_context_packager.scan_repo --help
+                  python -m repository_context_packager.scan_repo --version
             - name: Test with pytest
               run: |
                   pytest
