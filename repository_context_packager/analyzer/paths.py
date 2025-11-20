@@ -3,7 +3,7 @@ import sys
 import logging
 import argparse
 
-from analyzer import output
+from . import output
 
 
 def normalize_path(path: str) -> str:
@@ -53,7 +53,8 @@ def validate_paths(paths: list[str]) -> tuple[str | None, list[str]]:
     if len(directories) > 1:
         raise ValueError("Only one directory path is allowed.")
     if directories and filenames:
-        raise ValueError("Please enter only a single directory path OR one or more filenames.")
+        raise ValueError(
+            "Please enter only a single directory path OR one or more filenames.")
 
     # Return the directory (or None) and the list of filenames
     return (directories[0] if directories else None, filenames)

@@ -3,7 +3,8 @@ import time
 import logging
 import re
 
-from analyzer import removelines
+from . import removelines
+
 
 def is_recently_modified(file_path: str, recent_day: int = 7) -> bool:
     """
@@ -55,13 +56,15 @@ def analyze_file_content(file_path: str, max_bytes: int, remove_comments: bool =
             # Determine file extension
             _, file_extension = os.path.splitext(file_path)
             # Remove comments from the content
-            content = removelines.remove_comments_from_code(content, file_extension)
+            content = removelines.remove_comments_from_code(
+                content, file_extension)
 
         # Split content into lines
         lines = content.splitlines()
 
         # Escape any triple backticks to avoid breaking markdown formatting
-        escaped_lines = [line.replace("```", "&#96;&#96;&#96;") for line in lines]
+        escaped_lines = [line.replace("```", "&#96;&#96;&#96;")
+                         for line in lines]
 
         # Rejoin lines into a single string
         result = "\n".join(escaped_lines)
@@ -95,7 +98,7 @@ def list_all_files(absolute_path: str, include_hidden: bool = False) -> list[str
 
     # Walk through the directory tree starting at absolute_path
     for root, dirs, files in os.walk(absolute_path):
-        
+
         # Skip .git and __pycache__ directories
         for skip_dir in [".git", "__pycache__"]:
             if skip_dir in dirs:
@@ -110,7 +113,7 @@ def list_all_files(absolute_path: str, include_hidden: bool = False) -> list[str
 
             # Add the full file path to the list
             file_paths.append(os.path.join(root, file))
-    
+
     # Return the complete list of file paths
     return file_paths
 
@@ -130,7 +133,7 @@ def get_file_paths(absolute_path: str, filenames: list[str] | None, recent_only:
     # If specific filenames are provided, filter them by recency if needed
     if filenames:
         return [f for f in filenames if not recent_only or is_recently_modified(f)]
-    
+
     # Otherwise, list all files in the directory and filter by recency if needed
     all_files = list_all_files(absolute_path)
     selected = []

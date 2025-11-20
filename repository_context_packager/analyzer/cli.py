@@ -3,7 +3,7 @@ import logging
 import os
 import sys
 
-from analyzer import config, paths
+from . import config, paths
 
 VERSION_NUM = "0.2.1"
 DEFAULT_MAX_FILE_BYTES = 16 * 1024
@@ -14,7 +14,7 @@ def build_parser():
         description="Repository Context Packager - scan repo and output context"
     )
     parser.add_argument(
-        "-v", "--version", 
+        "-v", "--version",
         help="Displays tool name and version number",
         action="version",
         version=f"Repository Context Packager {VERSION_NUM}"
@@ -88,8 +88,10 @@ def main(argv: list[str] | None = None) -> None:
     # Merge CLI args with config defaults
     args.output = config.merge_config(args, cfg, "output", str, args.output)
     args.recent = config.merge_config(args, cfg, "recent", bool, args.recent)
-    args.verbose = config.merge_config(args, cfg, "verbose", bool, args.verbose)
-    args.paths = config.merge_config(args, cfg, "paths", list, args.paths or [])
+    args.verbose = config.merge_config(
+        args, cfg, "verbose", bool, args.verbose)
+    args.paths = config.merge_config(
+        args, cfg, "paths", list, args.paths or [])
     args.max_file_size = config.merge_config(
         args, cfg, "max_file_size", int, args.max_file_size
     ) or DEFAULT_MAX_FILE_BYTES
