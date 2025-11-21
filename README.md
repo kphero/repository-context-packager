@@ -201,7 +201,7 @@ pytest
 
 ## License
 
-MIT License. See `LICENSE` file for details.
+[GPL-3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) License. See `LICENSE` file for details.
 
 ---
 
